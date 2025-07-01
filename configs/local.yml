@@ -1,0 +1,11 @@
+server:
+  host: localhost
+  port: 8080
+  access_token_expire: 7m
+  refresh_token_expire: 30m
+  log_level: info
+  async_hashing_limit: 10
+
+db-conn:
+  db_url: 
+  max_open_conns: 15
