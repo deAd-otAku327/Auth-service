@@ -20,10 +20,14 @@ func main() {
 	configDir := filepath.Join("..", "configs")
 	envPath := filepath.Join("..", "app.env")
 
-	err := godotenv.Load(envPath)
-	reportOnError(err)
+	godotenv.Load(envPath)
 
-	configPath := filepath.Join(configDir, fmt.Sprintf("%s.yml", os.Getenv("ENV")))
+	env := os.Getenv("ENV")
+	if env == "" {
+		log.Fatalln("error: missing app environment")
+	}
+
+	configPath := filepath.Join(configDir, fmt.Sprintf("%s.yml", env))
 
 	cfg, err := config.New(configPath)
 	reportOnError(err)
