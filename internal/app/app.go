@@ -2,10 +2,15 @@ package app
 
 import (
 	"auth-service/internal/config"
+	"auth-service/internal/controller"
+	"auth-service/internal/repository"
+	"auth-service/internal/service"
+	"auth-service/pkg/logger"
 	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 )
 
 const AppName = "Auth-Service"
@@ -15,10 +20,24 @@ type App struct {
 }
 
 func New(cfg *config.Config) (*App, error) {
+	logger, err := logger.NewTextLogger(os.Stdout, cfg.LogLevel)
+	if err != nil {
+		return nil, err
+	}
+
+	repo, err := repository.NewPostgresRepo(cfg.DBConn, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	service := service.New(repo, logger)
+
+	controller := controller.New(service, logger)
+
 	return &App{
 		Server: &http.Server{
 			Addr:    fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-			Handler: nil,
+			Handler: initRoutes(controller),
 		},
 	}, nil
 }
