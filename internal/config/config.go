@@ -23,7 +23,7 @@ type Server struct {
 }
 
 type DBConn struct {
-	URL          string `yaml:"db_url" env:"DB_URL"`
+	URL          string `env:"DB_URL" env-required:"true"`
 	MaxOpenConns int    `yaml:"max_open_conns" env-default:"15"`
 }
 

@@ -12,15 +12,10 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	configDir := filepath.Join("..", "configs")
-	envPath := filepath.Join("..", "app.env")
-
-	godotenv.Load(envPath)
 
 	env := os.Getenv("ENV")
 	if env == "" {
