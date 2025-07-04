@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"log/slog"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
 	_ "github.com/lib/pq"
 )
 
@@ -14,7 +18,7 @@ type postgresDB struct {
 }
 
 func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
-	database, err := sql.Open(PQDriverName, cfg.URL)
+	database, err := sql.Open("postgres", cfg.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -25,6 +29,22 @@ func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
 	}
 
 	database.SetMaxOpenConns(cfg.MaxOpenConns)
+
+	migrationsDir := "file://../migrations"
+
+	driver, err := postgres.WithInstance(database, &postgres.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	migrator, err := migrate.NewWithDatabaseInstance(migrationsDir, "auth-db", driver)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := migrator.Up(); err != nil {
+		return nil, err
+	}
 
 	return &postgresDB{
 		db:     database,

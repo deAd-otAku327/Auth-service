@@ -16,6 +16,10 @@ WORKDIR /root/configs
 
 COPY --from=build /src/configs . 
 
+WORKDIR /root/migrations
+
+COPY --from=build /src/internal/repository/postgres/migrations . 
+
 WORKDIR /root/app
 
 COPY --from=build /src/auth-service . 
