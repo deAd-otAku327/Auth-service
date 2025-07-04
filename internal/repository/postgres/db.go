@@ -42,9 +42,11 @@ func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
 		return nil, err
 	}
 
-	if err := migrator.Up(); err != nil {
+	if err := migrator.Up(); err != nil && err != migrate.ErrNoChange {
 		return nil, err
 	}
+
+	slog.Info("database migrated and ready")
 
 	return &postgresDB{
 		db:     database,
