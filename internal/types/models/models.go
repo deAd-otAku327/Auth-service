@@ -2,6 +2,10 @@ package models
 
 import "time"
 
+type Login struct {
+	UserGUID string
+}
+
 type User struct {
 	GUID string
 }
