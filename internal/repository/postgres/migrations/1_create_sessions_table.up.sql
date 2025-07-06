@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     ip VARCHAR(15) NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT false,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL,
+    UNIQUE(user_id, user_agent)
 );
 
