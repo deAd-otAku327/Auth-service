@@ -1,9 +1,10 @@
-CREATE TABLE IF NOT EXISTS refresh_tokens (
+CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-    token TEXT UNIQUE NOT NULL,
+    refresh_token TEXT UNIQUE NOT NULL,
     user_agent TEXT NOT NULL,
     ip VARCHAR(15) NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT false,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL
 );

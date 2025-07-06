@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"auth-service/internal/config"
+	"auth-service/internal/types/models"
+	"context"
 	"database/sql"
 	"log/slog"
 
@@ -52,4 +54,14 @@ func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
 		db:     database,
 		logger: logger,
 	}, nil
+}
+
+func (db *postgresDB) GetSession(ctx context.Context, token string) (*models.Session, error) {
+	return nil, nil
+}
+func (db *postgresDB) CreateSession(ctx context.Context, session *models.Session) error {
+	return nil
+}
+func (db *postgresDB) RevokeSession(ctx context.Context, token string) error {
+	return nil
 }

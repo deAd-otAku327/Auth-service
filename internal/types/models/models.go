@@ -6,11 +6,11 @@ type User struct {
 	GUID string
 }
 
-type RefreshToken struct {
-	UserGUID  string
-	Token     string
-	UserAgent string
-	IP        string
-	ExpiresAt time.Time
-	CreatedAt time.Time
+type Session struct {
+	UserGUID     string
+	RefreshToken string
+	UserAgent    string
+	IP           string
+	ExpiresAt    time.Time
+	CreatedAt    time.Time
 }
