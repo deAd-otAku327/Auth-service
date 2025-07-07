@@ -4,6 +4,7 @@ import "errors"
 
 // API errors.
 var (
+	ErrAuthenticationFailed = errors.New("authentication failed")
 	ErrAuthorizeNotNeeded   = errors.New("authorization is not needed")
 	ErrInvalidRequestFormat = errors.New("invalid request format")
 	ErrInvalidRequestData   = errors.New("invalid request data")

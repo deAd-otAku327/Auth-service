@@ -3,6 +3,7 @@ package app
 import (
 	"auth-service/internal/config"
 	"auth-service/internal/controller"
+	"auth-service/internal/middleware"
 	"auth-service/internal/repository"
 	"auth-service/internal/service"
 	"auth-service/internal/tokenizer"
@@ -38,11 +39,12 @@ func New(cfg *config.Config) (*App, error) {
 	service := service.New(repo, cryptor, tokenizer, logger)
 
 	controller := controller.New(service, logger)
+	middleware := middleware.New(tokenizer)
 
 	return &App{
 		Server: &http.Server{
 			Addr:    fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-			Handler: initRoutes(controller),
+			Handler: initRoutes(controller, middleware),
 		},
 	}, nil
 }
