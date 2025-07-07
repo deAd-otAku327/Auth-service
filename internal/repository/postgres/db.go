@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
+	"os"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang-migrate/migrate/v4"
@@ -34,7 +35,7 @@ func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
 
 	database.SetMaxOpenConns(cfg.MaxOpenConns)
 
-	migrationsDir := "file://../migrations"
+	migrationsDir := os.Getenv("MIGRATIONS_DIR")
 
 	driver, err := postgres.WithInstance(database, &postgres.Config{})
 	if err != nil {

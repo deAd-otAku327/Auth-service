@@ -15,13 +15,12 @@ import (
 )
 
 func main() {
-	configDir := filepath.Join("..", "configs")
-
 	env := os.Getenv("ENV")
 	if env == "" {
 		log.Fatalln("error: missing app environment")
 	}
 
+	configDir := os.Getenv("CONFIG_DIR")
 	configPath := filepath.Join(configDir, fmt.Sprintf("%s.yml", env))
 
 	cfg, err := config.New(configPath)
