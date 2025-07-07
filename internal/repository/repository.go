@@ -6,7 +6,6 @@ import (
 	"auth-service/internal/types/models"
 	"auth-service/internal/types/queries"
 	"context"
-	"log/slog"
 )
 
 type Repository interface {
@@ -16,6 +15,6 @@ type Repository interface {
 	DeleteSession(ctx context.Context, sessionID string) error
 }
 
-func NewPostgresRepo(cfg config.DBConn, logger *slog.Logger) (Repository, error) {
-	return postgres.New(cfg, logger)
+func NewPostgresRepo(cfg config.DBConn) (Repository, error) {
+	return postgres.New(cfg)
 }

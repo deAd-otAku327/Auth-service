@@ -27,7 +27,7 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	repo, err := repository.NewPostgresRepo(cfg.DBConn, logger)
+	repo, err := repository.NewPostgresRepo(cfg.DBConn)
 	if err != nil {
 		return nil, err
 	}

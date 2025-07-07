@@ -19,6 +19,6 @@ func MakeResponseJSON(w http.ResponseWriter, code int, data any) {
 	}
 }
 
-func MakeErrorResponseJSON(w http.ResponseWriter, err *dto.ErrorResponse) {
-	MakeResponseJSON(w, err.Code, err)
+func MakeErrorResponseJSON(w http.ResponseWriter, apierr *dto.ErrorResponse) {
+	MakeResponseJSON(w, apierr.Code, apierr)
 }

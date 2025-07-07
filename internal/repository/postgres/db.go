@@ -2,10 +2,12 @@ package postgres
 
 import (
 	"auth-service/internal/config"
+	"auth-service/internal/repository/repoerrors"
 	"auth-service/internal/types/models"
 	"auth-service/internal/types/queries"
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -18,11 +20,10 @@ import (
 )
 
 type postgresDB struct {
-	db     *sql.DB
-	logger *slog.Logger
+	db *sql.DB
 }
 
-func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
+func New(cfg config.DBConn) (*postgresDB, error) {
 	database, err := sql.Open("postgres", cfg.URL)
 	if err != nil {
 		return nil, err
@@ -54,18 +55,17 @@ func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
 	slog.Info("database migrated and ready")
 
 	return &postgresDB{
-		db:     database,
-		logger: logger,
+		db: database,
 	}, nil
 }
 
 func (s *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSessionQuery) (*models.Session, error) {
-	query, args, err := sq.Select("*").
+	query, args, err := sq.Select("*").Suffix("lol").
 		From(SessionsTable).
 		Where(sq.Eq{UserIDColumn: getSession.UserGUID, UserAgentColumn: getSession.UserAgent}).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
 	}
 
 	row := s.db.QueryRowContext(ctx, query, args...)
@@ -78,7 +78,7 @@ func (s *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSess
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
 	}
 
 	return &session, nil
@@ -90,7 +90,7 @@ func (s *postgresDB) GetSessionByToken(ctx context.Context, refreshToken string)
 		Where(sq.Eq{RefreshTokenColumn: refreshToken}).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
 	}
 
 	row := s.db.QueryRowContext(ctx, query, args...)
@@ -103,7 +103,7 @@ func (s *postgresDB) GetSessionByToken(ctx context.Context, refreshToken string)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
 	}
 
 	return &session, nil
@@ -115,12 +115,12 @@ func (s *postgresDB) CreateSession(ctx context.Context, createSession *queries.C
 		Values(createSession.UserGUID, createSession.RefreshToken, createSession.UserAgent, createSession.IP, createSession.ExpiresAt).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
 	}
 
 	_, err = s.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
 	}
 
 	return nil
@@ -130,14 +130,13 @@ func (s *postgresDB) DeleteSession(ctx context.Context, sessionID string) error 
 	query, args, err := sq.Delete(SessionsTable).
 		Where(sq.Eq{SessionIDColumn: sessionID}).
 		PlaceholderFormat(sq.Dollar).ToSql()
-
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
 	}
 
 	_, err = s.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
 	}
 
 	return nil

@@ -1,6 +1,8 @@
 package dtomap
 
-import "auth-service/internal/types/dto"
+import (
+	"auth-service/internal/types/dto"
+)
 
 func MapToLoginResponse(accessToken string) *dto.LoginResponse {
 	return &dto.LoginResponse{

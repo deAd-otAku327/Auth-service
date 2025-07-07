@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"auth-service/internal/apperrors"
+	"auth-service/internal/controller/apierrors"
 	"auth-service/internal/controller/responser"
 	"auth-service/internal/mappers/dtomap"
 	"auth-service/internal/mappers/modelmap"
@@ -31,16 +31,18 @@ func New(service service.Service, logger *slog.Logger) Controller {
 	}
 }
 
+const GUIDQueryParam = "guid"
+
 func (c *authController) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
-			responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apperrors.ErrInvalidRequestParams, http.StatusBadRequest))
+			responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apierrors.ErrInvalidRequestFormat, http.StatusBadRequest))
 			return
 		}
 
 		request := dto.LoginRequest{
-			UserGUID: r.URL.Query().Get("guid"),
+			UserGUID: r.URL.Query().Get(GUIDQueryParam),
 		}
 
 		splittedRemoteAddress := strings.Split(r.RemoteAddr, ":")
@@ -50,9 +52,13 @@ func (c *authController) HandleLogin() http.HandlerFunc {
 			clientIP = splittedRemoteAddress[0]
 		}
 
-		response, refreshCookie, servErr := c.service.Login(r.Context(), modelmap.MapToLoginModel(&request, r.UserAgent(), clientIP))
-		if servErr != nil {
-			responser.MakeErrorResponseJSON(w, servErr)
+		response, refreshCookie, err := c.service.Login(r.Context(), modelmap.MapToLoginModel(&request, r.UserAgent(), clientIP))
+		if err != nil {
+			apierr := getAPIError(err)
+			if apierr.Code == http.StatusInternalServerError {
+				c.logger.Error(err.Error())
+			}
+			responser.MakeErrorResponseJSON(w, apierr)
 			return
 		}
 
