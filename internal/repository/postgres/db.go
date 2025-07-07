@@ -3,6 +3,7 @@ package postgres
 import (
 	"auth-service/internal/config"
 	"auth-service/internal/types/models"
+	"auth-service/internal/types/queries"
 	"context"
 	"database/sql"
 	"log/slog"
@@ -56,12 +57,18 @@ func New(cfg config.DBConn, logger *slog.Logger) (*postgresDB, error) {
 	}, nil
 }
 
-func (db *postgresDB) GetSession(ctx context.Context, token string) (*models.Session, error) {
+func (db *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSessionQuery) (*models.Session, error) {
 	return nil, nil
 }
-func (db *postgresDB) CreateSession(ctx context.Context, session *models.Session) error {
+
+func (db *postgresDB) GetSessionByToken(ctx context.Context, refreshToken string) (*models.Session, error) {
+	return nil, nil
+}
+
+func (db *postgresDB) CreateSession(ctx context.Context, createSession *queries.CreateSessionQuery) error {
 	return nil
 }
-func (db *postgresDB) RevokeSession(ctx context.Context, token string) error {
+
+func (db *postgresDB) DeleteSession(ctx context.Context, sessionID string) error {
 	return nil
 }

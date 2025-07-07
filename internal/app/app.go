@@ -5,6 +5,8 @@ import (
 	"auth-service/internal/controller"
 	"auth-service/internal/repository"
 	"auth-service/internal/service"
+	"auth-service/internal/tokenizer"
+	"auth-service/pkg/cryptor"
 	"auth-service/pkg/logger"
 	"context"
 	"fmt"
@@ -30,7 +32,10 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	service := service.New(repo, logger)
+	cryptor := cryptor.New(cfg.AsyncHashingLimit)
+	tokenizer := tokenizer.New(AppName, cfg.AccessTokenSecretKey, cfg.AccessTokenExpire, cfg.RefreshTokenExpire)
+
+	service := service.New(repo, cryptor, tokenizer, logger)
 
 	controller := controller.New(service, logger)
 

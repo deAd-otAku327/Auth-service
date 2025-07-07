@@ -1,23 +1,16 @@
-package models
+package queries
 
 import "time"
 
-type Login struct {
+type GetSessionQuery struct {
 	UserGUID  string
 	UserAgent string
-	IP        string
 }
 
-type User struct {
-	GUID string
-}
-
-type Session struct {
-	ID           string
+type CreateSessionQuery struct {
 	UserGUID     string
 	RefreshToken string
 	UserAgent    string
 	IP           string
 	ExpiresAt    time.Time
-	CreatedAt    time.Time
 }
