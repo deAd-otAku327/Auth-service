@@ -60,7 +60,7 @@ func New(cfg config.DBConn) (*postgresDB, error) {
 }
 
 func (s *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSessionQuery) (*models.Session, error) {
-	query, args, err := sq.Select("*").Suffix("lol").
+	query, args, err := sq.Select("*").
 		From(SessionsTable).
 		Where(sq.Eq{UserIDColumn: getSession.UserGUID, UserAgentColumn: getSession.UserAgent}).
 		PlaceholderFormat(sq.Dollar).ToSql()
