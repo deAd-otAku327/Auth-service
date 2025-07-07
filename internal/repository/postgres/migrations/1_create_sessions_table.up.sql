@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_agent TEXT NOT NULL,
     ip VARCHAR(15) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE(user_id, user_agent)
 );
 
