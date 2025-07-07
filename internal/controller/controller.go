@@ -9,6 +9,7 @@ import (
 	"auth-service/internal/types/dto"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 type Controller interface {
@@ -42,10 +43,11 @@ func (c *authController) HandleLogin() http.HandlerFunc {
 			UserGUID: r.URL.Query().Get("guid"),
 		}
 
-		clientIP := r.RemoteAddr
-		originIPWithProxy := r.Header.Get("X-Forwarded-For")
-		if originIPWithProxy != "" {
-			clientIP = originIPWithProxy
+		splittedRemoteAddress := strings.Split(r.RemoteAddr, ":")
+
+		clientIP := ""
+		if len(splittedRemoteAddress) == 2 {
+			clientIP = splittedRemoteAddress[0]
 		}
 
 		response, refreshCookie, servErr := c.service.Login(r.Context(), modelmap.MapToLoginModel(&request, r.UserAgent(), clientIP))
