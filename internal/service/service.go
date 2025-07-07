@@ -70,7 +70,8 @@ func (s *authService) Login(ctx context.Context, login *models.Login) (*dto.Logi
 		return nil, nil, fmt.Errorf("%w : %w", serverrors.ErrSessionAlreadyExists, err)
 	}
 
-	accessToken, err := s.tokenizer.GenerateAccessTokenJWT(login.UserGUID)
+	tokenPairID := uuid.NewString()
+	accessToken, err := s.tokenizer.GenerateAccessTokenJWT(login.UserGUID, tokenPairID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w : %w", serverrors.ErrAccessTokenGeneration, err)
 	}
@@ -87,6 +88,7 @@ func (s *authService) Login(ctx context.Context, login *models.Login) (*dto.Logi
 		RefreshToken: refreshTokenHash,
 		UserAgent:    login.UserAgent,
 		IP:           login.IP,
+		PairID:       tokenPairID,
 		ExpiresAt:    refreshCookie.Expires,
 	})
 	if err != nil {

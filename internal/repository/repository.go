@@ -10,7 +10,6 @@ import (
 
 type Repository interface {
 	GetSession(ctx context.Context, getSession *queries.GetSessionQuery) (*models.Session, error)
-	GetSessionByToken(ctx context.Context, refreshToken string) (*models.Session, error)
 	CreateSession(ctx context.Context, createSession *queries.CreateSessionQuery) error
 	DeleteSession(ctx context.Context, sessionID string) error
 }

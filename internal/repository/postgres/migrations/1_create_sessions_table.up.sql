@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     refresh_token TEXT UNIQUE NOT NULL,
     user_agent TEXT NOT NULL,
     ip VARCHAR(15) NOT NULL,
+    pair_id UUID UNIQUE NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE(user_id, user_agent)

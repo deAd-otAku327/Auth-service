@@ -10,7 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-const RefreshCookieName = "refresh_session"
+const (
+	RefreshCookieName = "refresh_session"
+	PairClaimsKey     = "pair"
+)
 
 var (
 	ErrTokenInvalid = errors.New("access token invalid")
@@ -18,8 +21,8 @@ var (
 )
 
 type Tokenizer interface {
-	GenerateAccessTokenJWT(userID string) (*string, error)
-	VerifyAccessTokenJWT(tokenString string) (jwt.MapClaims, error)
+	GenerateAccessTokenJWT(userID, pairID string) (*string, error)
+	VerifyAccessTokenJWT(tokenString string, skipExpired bool) (jwt.MapClaims, error)
 	GenerateRefreshTokenCookie() *http.Cookie
 }
 
@@ -39,12 +42,13 @@ func New(iss, jwtKey string, accessExpire, refreshExpire time.Duration) Tokenize
 	}
 }
 
-func (t *tokenizer) GenerateAccessTokenJWT(userGUID string) (*string, error) {
+func (t *tokenizer) GenerateAccessTokenJWT(userGUID, pairID string) (*string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"sub": userGUID,
-		"iss": t.tokenIssuer,
-		"exp": time.Now().Add(t.accessTokenExpire).Unix(),
-		"iat": time.Now().Unix(),
+		"sub":         userGUID,
+		PairClaimsKey: pairID,
+		"iss":         t.tokenIssuer,
+		"exp":         time.Now().Add(t.accessTokenExpire).Unix(),
+		"iat":         time.Now().Unix(),
 	})
 
 	accessToken, err := claims.SignedString(t.jwtSecret)
@@ -55,7 +59,7 @@ func (t *tokenizer) GenerateAccessTokenJWT(userGUID string) (*string, error) {
 	return &accessToken, nil
 }
 
-func (t *tokenizer) VerifyAccessTokenJWT(tokenString string) (jwt.MapClaims, error) {
+func (t *tokenizer) VerifyAccessTokenJWT(tokenString string, skipExpired bool) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if token.Method.Alg() != jwt.SigningMethodHS512.Alg() {
 			return nil, ErrTokenInvalid
@@ -63,7 +67,7 @@ func (t *tokenizer) VerifyAccessTokenJWT(tokenString string) (jwt.MapClaims, err
 		return t.jwtSecret, nil
 	})
 	if err != nil {
-		if errors.Is(err, jwt.ErrTokenExpired) {
+		if errors.Is(err, jwt.ErrTokenExpired) && !skipExpired {
 			return nil, ErrTokenExpired
 		}
 		return nil, ErrTokenInvalid

@@ -73,32 +73,7 @@ func (s *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSess
 	var session models.Session
 
 	err = row.Scan(&session.ID, &session.UserGUID, &session.RefreshToken,
-		&session.UserAgent, &session.IP, &session.ExpiresAt, &session.CreatedAt)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
-	}
-
-	return &session, nil
-}
-
-func (s *postgresDB) GetSessionByToken(ctx context.Context, refreshToken string) (*models.Session, error) {
-	query, args, err := sq.Select("*").
-		From(SessionsTable).
-		Where(sq.Eq{RefreshTokenColumn: refreshToken}).
-		PlaceholderFormat(sq.Dollar).ToSql()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
-	}
-
-	row := s.db.QueryRowContext(ctx, query, args...)
-
-	var session models.Session
-
-	err = row.Scan(&session.ID, &session.UserGUID, &session.RefreshToken,
-		&session.UserAgent, &session.IP, &session.ExpiresAt, &session.CreatedAt)
+		&session.UserAgent, &session.IP, &session.PairID, &session.ExpiresAt, &session.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -111,8 +86,10 @@ func (s *postgresDB) GetSessionByToken(ctx context.Context, refreshToken string)
 
 func (s *postgresDB) CreateSession(ctx context.Context, createSession *queries.CreateSessionQuery) error {
 	query, args, err := sq.Insert(SessionsTable).
-		Columns(UserIDColumn, RefreshTokenColumn, UserAgentColumn, IPColumn, ExpiresAtColumn).
-		Values(createSession.UserGUID, createSession.RefreshToken, createSession.UserAgent, createSession.IP, createSession.ExpiresAt).
+		Columns(UserIDColumn, RefreshTokenColumn, UserAgentColumn, IPColumn, PairIDColumn, ExpiresAtColumn).
+		Values(
+			createSession.UserGUID, createSession.RefreshToken, createSession.UserAgent,
+			createSession.IP, createSession.PairID, createSession.ExpiresAt).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)

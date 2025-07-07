@@ -12,5 +12,6 @@ type CreateSessionQuery struct {
 	RefreshToken string
 	UserAgent    string
 	IP           string
+	PairID       string
 	ExpiresAt    time.Time
 }

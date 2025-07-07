@@ -8,6 +8,7 @@ const (
 	RefreshTokenColumn = "refresh_token"
 	UserAgentColumn    = "user_agent"
 	IPColumn           = "ip"
+	PairIDColumn       = "pair_id"
 	ExpiresAtColumn    = "expires_at"
 	CreatedAtColumn    = "created_at"
 )

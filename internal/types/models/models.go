@@ -8,6 +8,11 @@ type Login struct {
 	IP        string
 }
 
+type Refresh struct {
+	AccessToken  string
+	RefreshToken string
+}
+
 type User struct {
 	GUID string
 }
@@ -18,6 +23,7 @@ type Session struct {
 	RefreshToken string
 	UserAgent    string
 	IP           string
+	PairID       string
 	ExpiresAt    time.Time
 	CreatedAt    time.Time
 }

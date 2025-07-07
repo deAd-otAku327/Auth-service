@@ -39,7 +39,7 @@ func (hub *middlewareHub) Auth() mux.MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			accessToken := strings.TrimPrefix(r.Header.Get(AuthorizationHeader), "Bearer ")
 
-			claims, err := hub.tokenizer.VerifyAccessTokenJWT(accessToken)
+			claims, err := hub.tokenizer.VerifyAccessTokenJWT(accessToken, false)
 			if err != nil {
 				responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apierrors.ErrAuthenticationFailed, http.StatusForbidden))
 				return
