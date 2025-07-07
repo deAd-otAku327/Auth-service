@@ -1,7 +1,7 @@
 package dto
 
 type LoginRequest struct {
-	UserGUID string `shema:"guid"`
+	UserGUID string
 }
 
 type RefreshRequest struct {

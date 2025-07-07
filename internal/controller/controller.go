@@ -9,8 +9,6 @@ import (
 	"auth-service/internal/types/dto"
 	"log/slog"
 	"net/http"
-
-	"github.com/gorilla/schema"
 )
 
 type Controller interface {
@@ -40,11 +38,8 @@ func (c *authController) HandleLogin() http.HandlerFunc {
 			return
 		}
 
-		request := dto.LoginRequest{}
-		err = schema.NewDecoder().Decode(&request, r.Form)
-		if err != nil {
-			responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apperrors.ErrInvalidRequestParams, http.StatusBadRequest))
-			return
+		request := dto.LoginRequest{
+			UserGUID: r.URL.Query().Get("guid"),
 		}
 
 		clientIP := r.RemoteAddr
