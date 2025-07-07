@@ -10,6 +10,12 @@ func MapToLoginResponse(accessToken string) *dto.LoginResponse {
 	}
 }
 
+func MapToUserResponse(userGUID string) *dto.UserResponse {
+	return &dto.UserResponse{
+		UserGUID: userGUID,
+	}
+}
+
 func MapToErrorResponse(err error, code int) *dto.ErrorResponse {
 	return &dto.ErrorResponse{
 		Message: err.Error(),

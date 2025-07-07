@@ -69,7 +69,17 @@ func (c *authController) HandleLogin() http.HandlerFunc {
 
 func (c *authController) HandleGetCurrentUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		response, err := c.service.GetCurrentUser(r.Context())
+		if err != nil {
+			apierr := getAPIError(err)
+			if apierr.Code == http.StatusInternalServerError {
+				c.logger.Error(err.Error())
+			}
+			responser.MakeErrorResponseJSON(w, apierr)
+			return
+		}
 
+		responser.MakeResponseJSON(w, http.StatusOK, &response)
 	}
 }
 

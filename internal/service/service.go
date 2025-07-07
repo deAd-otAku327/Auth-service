@@ -2,6 +2,7 @@ package service
 
 import (
 	"auth-service/internal/mappers/dtomap"
+	"auth-service/internal/middleware"
 	"auth-service/internal/repository"
 	"auth-service/internal/service/serverrors"
 	"auth-service/internal/tokenizer"
@@ -96,7 +97,12 @@ func (s *authService) Login(ctx context.Context, login *models.Login) (*dto.Logi
 }
 
 func (s *authService) GetCurrentUser(ctx context.Context) (*dto.UserResponse, error) {
-	return nil, nil
+	currUserGUID, ok := ctx.Value(middleware.UserGUIDKey).(string)
+	if !ok {
+		return nil, serverrors.ErrGUIDExtractionFailed
+	}
+
+	return dtomap.MapToUserResponse(currUserGUID), nil
 }
 
 func (s *authService) Refresh(ctx context.Context) (*dto.RefreshResponse, error) {
