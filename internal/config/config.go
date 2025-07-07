@@ -12,14 +12,13 @@ type Config struct {
 }
 
 type Server struct {
-	Host                  string        `yaml:"host" env:"HOST"`
-	Port                  string        `yaml:"port" env:"PORT"`
-	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET" env-required:"true"`
-	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET" env-required:"true"`
-	AccessTokenExpire     time.Duration `yaml:"access_token_expire" env-default:"12h"`
-	RefreshTokenExpire    time.Duration `yaml:"refresh_token_expire" env-default:"48h"`
-	LogLevel              string        `yaml:"log_level" env-default:"info"`
-	AsyncHashingLimit     int           `yaml:"async_hashing_limit" env-default:"10"`
+	Host                 string        `yaml:"host" env:"HOST"`
+	Port                 string        `yaml:"port" env:"PORT"`
+	AccessTokenSecretKey string        `env:"ACCESS_TOKEN_SECRET" env-required:"true"`
+	AccessTokenExpire    time.Duration `yaml:"access_token_expire" env-default:"12h"`
+	RefreshTokenExpire   time.Duration `yaml:"refresh_token_expire" env-default:"48h"`
+	LogLevel             string        `yaml:"log_level" env-default:"info"`
+	AsyncHashingLimit    int           `yaml:"async_hashing_limit" env-default:"10"`
 }
 
 type DBConn struct {
