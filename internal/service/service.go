@@ -23,7 +23,7 @@ type Service interface {
 	Login(ctx context.Context, login *models.Login) (*dto.LoginResponse, *http.Cookie, error)
 	GetCurrentUser(ctx context.Context) (*dto.UserResponse, error)
 	Refresh(ctx context.Context) (*dto.RefreshResponse, error)
-	Logout(ctx context.Context) error
+	Logout(ctx context.Context, userAgent string) error
 }
 
 type authService struct {
@@ -109,6 +109,26 @@ func (s *authService) Refresh(ctx context.Context) (*dto.RefreshResponse, error)
 	return nil, nil
 }
 
-func (s *authService) Logout(ctx context.Context) error {
+func (s *authService) Logout(ctx context.Context, userAgent string) error {
+	currUserGUID, ok := ctx.Value(middleware.UserGUIDKey).(string)
+	if !ok {
+		return serverrors.ErrGUIDExtractionFailed
+	}
+
+	session, err := s.repo.GetSession(ctx, &queries.GetSessionQuery{
+		UserGUID:  currUserGUID,
+		UserAgent: userAgent,
+	})
+	if err != nil {
+		return fmt.Errorf("%w : %w", serverrors.ErrGetSession, err)
+	}
+
+	if session != nil {
+		err := s.repo.DeleteSession(ctx, session.ID)
+		if err != nil {
+			return fmt.Errorf("%w : %w", serverrors.ErrDeleteSession, err)
+		}
+	}
+
 	return nil
 }

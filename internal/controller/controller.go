@@ -91,6 +91,16 @@ func (c *authController) HandleRefresh() http.HandlerFunc {
 
 func (c *authController) HandleLogout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		err := c.service.Logout(r.Context(), r.UserAgent())
+		if err != nil {
+			apierr := getAPIError(err)
+			if apierr.Code == http.StatusInternalServerError {
+				c.logger.Error(err.Error())
+			}
+			responser.MakeErrorResponseJSON(w, apierr)
+			return
+		}
 
+		responser.MakeResponseJSON(w, http.StatusOK, nil)
 	}
 }
