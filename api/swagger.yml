@@ -1,0 +1,145 @@
+openapi: '3.0.0'
+info:
+  title: Auth-service API
+  version: '1.0'
+servers:
+  - url: http://localhost:8080
+
+components:
+  schemas:     
+    User:
+      type: object
+      properties:
+        user_guid:
+          type: integer
+      required: [user_guid]
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: http-код ошибки
+        message:
+          type: string
+      required: [code, message]
+
+paths:
+  /api/auth/login:
+    post:
+      parameters:
+        - name: guid
+          in: query
+          description: GUID пользователя
+          required: true
+          schema:
+            type: string
+            example: eb8a32db-139f-4e33-b172-39810efcc487
+      responses:
+        '200':
+          description: OK
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: 
+                    type: string
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/current:
+    get:
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+            example: Bearer {{your_access_token}}
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_guid: 
+                    type: string
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/refresh:
+    description: Требуется пара токенов access & refresh, выданных вместе
+    post:
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+            example: Bearer {{your_access_token}}
+          required: true
+        - name: Cookie
+          in: header
+          schema:
+            type: string
+            example: refresh_session={{your_refresh_token}}; Path=/api/auth/refresh; Expires={{your_cookie_expire_date}}
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: 
+                    type: string
+        '401':
+          description: Unauthorized (No refresh session)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden (Request verification failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        
+  /api/auth/logout:
+    post:
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+            example: Bearer {{your_access_token}}
+          required: true
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
