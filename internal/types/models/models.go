@@ -11,6 +11,8 @@ type Login struct {
 type Refresh struct {
 	AccessToken  string
 	RefreshToken string
+	UserAgent    string
+	IP           string
 }
 
 type User struct {

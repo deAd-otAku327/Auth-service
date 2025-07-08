@@ -22,3 +22,9 @@ func MapToErrorResponse(err error, code int) *dto.ErrorResponse {
 		Code:    code,
 	}
 }
+
+func MapToRefreshResponse(accessToken string) *dto.RefreshResponse {
+	return &dto.RefreshResponse{
+		NewAccessToken: accessToken,
+	}
+}

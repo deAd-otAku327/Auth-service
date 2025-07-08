@@ -5,7 +5,9 @@ import (
 	"auth-service/internal/controller/responser"
 	"auth-service/internal/mappers/dtomap"
 	"auth-service/internal/mappers/modelmap"
+	"auth-service/internal/middleware"
 	"auth-service/internal/service"
+	"auth-service/internal/tokenizer"
 	"auth-service/internal/types/dto"
 	"log/slog"
 	"net/http"
@@ -85,7 +87,36 @@ func (c *authController) HandleGetCurrentUser() http.HandlerFunc {
 
 func (c *authController) HandleRefresh() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		accessToken := strings.TrimPrefix(r.Header.Get(middleware.AuthorizationHeader), "Bearer ")
+		if accessToken == "" {
+			responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apierrors.ErrNoAccessToken, http.StatusBadRequest))
+			return
+		}
+		refreshCookie, err := r.Cookie(tokenizer.RefreshCookieName)
+		if err != nil {
+			responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apierrors.ErrNoRefreshToken, http.StatusBadRequest))
+			return
+		}
 
+		splittedRemoteAddress := strings.Split(r.RemoteAddr, ":")
+
+		clientIP := ""
+		if len(splittedRemoteAddress) == 2 {
+			clientIP = splittedRemoteAddress[0]
+		}
+
+		response, refreshCookie, err := c.service.Refresh(r.Context(), modelmap.MapToRefreshModel(accessToken, refreshCookie.Value, r.UserAgent(), clientIP))
+		if err != nil {
+			apierr := getAPIError(err)
+			if apierr.Code == http.StatusInternalServerError {
+				c.logger.Error(err.Error())
+			}
+			responser.MakeErrorResponseJSON(w, apierr)
+			return
+		}
+
+		http.SetCookie(w, refreshCookie)
+		responser.MakeResponseJSON(w, http.StatusOK, &response)
 	}
 }
 

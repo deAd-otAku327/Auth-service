@@ -59,13 +59,13 @@ func New(cfg config.DBConn) (*postgresDB, error) {
 	}, nil
 }
 
-func (s *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSessionQuery) (*models.Session, error) {
+func (s *postgresDB) GetSession(ctx context.Context, getSessionQuery *queries.GetSessionQuery) (*models.Session, error) {
 	query, args, err := sq.Select("*").
 		From(SessionsTable).
-		Where(sq.Eq{UserIDColumn: getSession.UserGUID, UserAgentColumn: getSession.UserAgent}).
+		Where(sq.Eq{UserIDColumn: getSessionQuery.UserGUID, UserAgentColumn: getSessionQuery.UserAgent}).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
+		return nil, fmt.Errorf("%w: %w", repoerrors.ErrQueryBuilding, err)
 	}
 
 	row := s.db.QueryRowContext(ctx, query, args...)
@@ -78,42 +78,57 @@ func (s *postgresDB) GetSession(ctx context.Context, getSession *queries.GetSess
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
+		return nil, fmt.Errorf("%w: %w", repoerrors.ErrQueryExec, err)
 	}
 
 	return &session, nil
 }
 
-func (s *postgresDB) CreateSession(ctx context.Context, createSession *queries.CreateSessionQuery) error {
-	query, args, err := sq.Insert(SessionsTable).
-		Columns(UserIDColumn, RefreshTokenColumn, UserAgentColumn, IPColumn, PairIDColumn, ExpiresAtColumn).
-		Values(
-			createSession.UserGUID, createSession.RefreshToken, createSession.UserAgent,
-			createSession.IP, createSession.PairID, createSession.ExpiresAt).
-		PlaceholderFormat(sq.Dollar).ToSql()
+func (s *postgresDB) CreateSession(ctx context.Context, createSessionquery *queries.CreateSessionQuery) error {
+	err := createSession(ctx, s.db, createSessionquery)
 	if err != nil {
-		return fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
-	}
-
-	_, err = s.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
+		return err
 	}
 
 	return nil
 }
 
 func (s *postgresDB) DeleteSession(ctx context.Context, sessionID string) error {
-	query, args, err := sq.Delete(SessionsTable).
-		Where(sq.Eq{SessionIDColumn: sessionID}).
-		PlaceholderFormat(sq.Dollar).ToSql()
+	err := deleteSession(ctx, s.db, sessionID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", repoerrors.ErrQueryBuildingFailed, err)
+		return err
 	}
 
-	_, err = s.db.ExecContext(ctx, query, args...)
+	return nil
+}
+
+func (s *postgresDB) RenewSession(ctx context.Context, oldSessionID string, createSessionQuery *queries.CreateSessionQuery) error {
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("%w : %w", repoerrors.ErrQueryExecFailed, err)
+		return fmt.Errorf("%w: %w", repoerrors.ErrTransactionBegin, err)
+	}
+
+	err = deleteSession(ctx, tx, oldSessionID)
+	if err != nil {
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("%w + %w", err, txErr)
+		}
+		return err
+	}
+
+	err = createSession(ctx, tx, createSessionQuery)
+	if err != nil {
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return fmt.Errorf("%w + %w", err, txErr)
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w: %w", repoerrors.ErrTransactionCommit, err)
 	}
 
 	return nil

@@ -13,9 +13,11 @@ func MapToLoginModel(request *dto.LoginRequest, ua, ip string) *models.Login {
 	}
 }
 
-func MapToRefreshModel(access, refresh string) *models.Refresh {
+func MapToRefreshModel(access, refresh, ua, ip string) *models.Refresh {
 	return &models.Refresh{
 		AccessToken:  access,
 		RefreshToken: refresh,
+		UserAgent:    ua,
+		IP:           ip,
 	}
 }
