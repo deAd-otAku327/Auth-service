@@ -6,6 +6,7 @@ import (
 	"auth-service/internal/mappers/dtomap"
 	"auth-service/internal/tokenizer"
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -41,7 +42,8 @@ func (hub *middlewareHub) Auth() mux.MiddlewareFunc {
 
 			claims, err := hub.tokenizer.VerifyAccessTokenJWT(accessToken, false)
 			if err != nil {
-				responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(apierrors.ErrAuthenticationFailed, http.StatusForbidden))
+				responser.MakeErrorResponseJSON(w, dtomap.MapToErrorResponse(
+					fmt.Errorf("%w: %w", apierrors.ErrAuthenticationFailed, err), http.StatusForbidden))
 				return
 			}
 
