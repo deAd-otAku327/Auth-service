@@ -47,12 +47,7 @@ func (c *authController) HandleLogin() http.HandlerFunc {
 			UserGUID: r.URL.Query().Get(GUIDQueryParam),
 		}
 
-		splittedRemoteAddress := strings.Split(r.RemoteAddr, ":")
-
-		clientIP := ""
-		if len(splittedRemoteAddress) == 2 {
-			clientIP = splittedRemoteAddress[0]
-		}
+		clientIP := getClientIPFromRequest(r)
 
 		response, refreshCookie, err := c.service.Login(r.Context(), modelmap.MapToLoginModel(&request, r.UserAgent(), clientIP))
 		if err != nil {
@@ -98,12 +93,7 @@ func (c *authController) HandleRefresh() http.HandlerFunc {
 			return
 		}
 
-		splittedRemoteAddress := strings.Split(r.RemoteAddr, ":")
-
-		clientIP := ""
-		if len(splittedRemoteAddress) == 2 {
-			clientIP = splittedRemoteAddress[0]
-		}
+		clientIP := getClientIPFromRequest(r)
 
 		response, refreshCookie, err := c.service.Refresh(r.Context(), modelmap.MapToRefreshModel(accessToken, refreshCookie.Value, r.UserAgent(), clientIP))
 		if err != nil {

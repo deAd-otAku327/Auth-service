@@ -7,7 +7,10 @@ import (
 	"auth-service/internal/types/dto"
 	"errors"
 	"net/http"
+	"strings"
 )
+
+const XRealIPHeader = "X-Real-IP"
 
 func getAPIError(err error) *dto.ErrorResponse {
 	if errors.Is(err, serverrors.ErrSessionAlreadyExists) {
@@ -24,4 +27,20 @@ func getAPIError(err error) *dto.ErrorResponse {
 	} else {
 		return dtomap.MapToErrorResponse(apierrors.ErrSomethingWentWrong, http.StatusInternalServerError)
 	}
+}
+
+func getClientIPFromRequest(r *http.Request) string {
+	splittedRemoteAddress := strings.Split(r.RemoteAddr, ":")
+
+	clientIP := ""
+	if len(splittedRemoteAddress) == 2 {
+		clientIP = splittedRemoteAddress[0]
+	}
+
+	xrealIP := r.Header.Get(XRealIPHeader)
+	if xrealIP != "" {
+		clientIP = xrealIP
+	}
+
+	return clientIP
 }
